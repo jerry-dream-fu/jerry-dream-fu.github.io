@@ -5,7 +5,8 @@ import urllib
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 from bs4.element import Tag 
-from openpyxl import Workbook, workbook
+import openpyxl
+from openpyxl import Workbook
 import datetime
 import time
 from openpyxl.comments import Comment
@@ -29,14 +30,40 @@ import requests
 #get today info
 today = datetime.datetime.now().strftime("%Y-%m-%d")
 
-wb=Workbook()
-save_file = '/home/ubuntu/python/info.xlsx'
-worksheet = wb.active
-worksheet.title= '小木虫'
-xlsx_list=['标题','学校','专业','调剂人数','发布时间','链接']
-worksheet.append(xlsx_list)
-xmu_count=0
 
+
+current_path = os.getcwd()
+save_file = current_path+'/info.xlsx'
+
+#wb = 1
+worksheet_1 = 1
+#worksheet_2_chinakaoyan = 1
+
+xlsx_list=['标题','学校','专业','调剂人数','发布时间','链接']
+if os.path.exists(save_file):#true 
+    #global worksheet_1
+    #global worksheet_2_chinakaoyan
+    #global wb
+    wb = openpyxl.load_workbook(save_file)
+    sheet_names = wb.sheetnames
+    worksheet_1 = wb[sheet_names[0]]#'小木虫'
+    worksheet_2_chinakaoyan=wb[sheet_names[1]]#'中国考研网'
+else:
+    #global worksheet_1
+    #global worksheet_2_chinakaoyan
+    #global wb
+    wb = Workbook()
+    worksheet_1 = wb.active
+    worksheet_1.title= '小木虫'
+    worksheet_1.append(xlsx_list)
+    worksheet_2_chinakaoyan=wb.create_sheet('中国考研网')
+    worksheet_2_chinakaoyan.append(xlsx_list)
+    
+#three sheet
+
+
+
+xmu_count=0
 def get_info_xmc(url):  
     headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'}
@@ -69,7 +96,7 @@ def get_info_xmc(url):
                 release_time = l_child_child[4].get_text()
 
                 get_y_m_d = release_time.split()
-                if get_y_m_d == today:
+                if get_y_m_d != today:
                     global xmu_count
                     xmu_count=xmu_count+1
                     text_list.append(shool_info)#,'学校'
@@ -77,12 +104,11 @@ def get_info_xmc(url):
                     text_list.append(num_info)#'调剂人数
                     text_list.append(release_time)#'发布时间'
                     text_list.append(link_info)#'链接'
-                    worksheet.append(text_list)
+                    worksheet_1.append(text_list)
     
     wb.save(filename=save_file)
 
-worksheet_chinakaoyan=wb.create_sheet('中国考研网')
-worksheet_chinakaoyan.append(xlsx_list)
+
 chinakaoyan_count=0
 def get_info_chinakaoyan(url):
     headers = {
@@ -103,8 +129,8 @@ def get_info_chinakaoyan(url):
         title_link_info = info.find('span',class_='title')
         link_info = title_link_info.find('a').get('href')
         release_time_info = info.find('span',class_='time')
-        get_y_m_d = release_time_info.split()
-        print(get_y_m_d)
+        get_y_m_d = release_time_info.get_text().split()[0]
+       # print(get_y_m_d)
         if get_y_m_d == today:
             chinakaoyan_count=chinakaoyan_count+1        
             text_list.append(title_link_info.get_text())#'标题',
@@ -113,13 +139,13 @@ def get_info_chinakaoyan(url):
             text_list.append('')#'调剂人数',
             text_list.append(release_time_info.get_text())#'发布时间',
             text_list.append('http://www.chinakaoyan.com/'+link_info)#'链接'
-            worksheet_chinakaoyan.append(text_list)
+            worksheet_2_chinakaoyan.append(text_list)
   
     wb.save(filename=save_file)
                 
 #worksheet_eol=wb.create_sheet('中国教育在线')
 #worksheet_eol.append(xlsx_list)
-def get_info_chinakaoyan(url):
+def get_info_eol(url):
     headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'}
     req=urllib.request.Request(url,headers=headers)
@@ -174,7 +200,7 @@ def sendMail(content):
     msg.attach(msg_content)
     
     print("准备添加附件...")
-    part = MIMEApplication(open('/home/ubuntu/python/info.xlsx','rb').read())
+    part = MIMEApplication(open(current_path+'/info.xlsx','rb').read())
     part.add_header('Content-Disposition', 'attachment', filename="info.xlsx")#给附件重命名,一般和原文件名一样,改错了可能无法打开.
     msg.attach(part)
 
