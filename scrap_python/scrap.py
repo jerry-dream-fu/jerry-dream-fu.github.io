@@ -40,24 +40,24 @@ worksheet_1 = 1
 #worksheet_2_chinakaoyan = 1
 
 xlsx_list=['标题','学校','专业','调剂人数','发布时间','链接']
-if os.path.exists(save_file):#true 
+#if os.path.exists(save_file):#true 
     #global worksheet_1
     #global worksheet_2_chinakaoyan
     #global wb
-    wb = openpyxl.load_workbook(save_file)
-    sheet_names = wb.sheetnames
-    worksheet_1 = wb[sheet_names[0]]#'小木虫'
-    worksheet_2_chinakaoyan=wb[sheet_names[1]]#'中国考研网'
-else:
+#    wb = openpyxl.load_workbook(save_file)
+#    sheet_names = wb.sheetnames
+#    worksheet_1 = wb[sheet_names[0]]#'小木虫'
+#    worksheet_2_chinakaoyan=wb[sheet_names[1]]#'中国考研网'
+#else:
     #global worksheet_1
     #global worksheet_2_chinakaoyan
     #global wb
-    wb = Workbook()
-    worksheet_1 = wb.active
-    worksheet_1.title= '小木虫'
-    worksheet_1.append(xlsx_list)
-    worksheet_2_chinakaoyan=wb.create_sheet('中国考研网')
-    worksheet_2_chinakaoyan.append(xlsx_list)
+wb = Workbook()
+worksheet_1 = wb.active
+worksheet_1.title= '小木虫'
+worksheet_1.append(xlsx_list)
+worksheet_2_chinakaoyan=wb.create_sheet('中国考研网')
+worksheet_2_chinakaoyan.append(xlsx_list)
     
 #three sheet
 
@@ -95,8 +95,8 @@ def get_info_xmc(url):
                 num_info = l_child_child[3].get_text()
                 release_time = l_child_child[4].get_text()
 
-                get_y_m_d = release_time.split()
-                if get_y_m_d != today:
+                get_y_m_d = release_time.split()[0]
+                if True:#get_y_m_d == today:
                     global xmu_count
                     xmu_count=xmu_count+1
                     text_list.append(shool_info)#,'学校'
@@ -131,7 +131,8 @@ def get_info_chinakaoyan(url):
         release_time_info = info.find('span',class_='time')
         get_y_m_d = release_time_info.get_text().split()[0]
        # print(get_y_m_d)
-        if get_y_m_d == today:
+        if True:#get_y_m_d == today:
+            global chinakaoyan_count
             chinakaoyan_count=chinakaoyan_count+1        
             text_list.append(title_link_info.get_text())#'标题',
             text_list.append(school_info.get_text())#'学校',
@@ -209,14 +210,14 @@ def sendMail(content):
 if __name__=="__main__":
     #
     url = "http://muchong.com/bbs/kaoyan.php?&page={}"
-    urls = [url.format(str(i)) for i in range(1,20)]
+    urls = [url.format(str(i)) for i in range(1,300)]
     for url in urls:
         get_info_xmc(url)
     xmu_content = "小木虫 "+ today+" 更新调剂条目条数： " + str(xmu_count)
-    url_chinakaoyan = "http://www.chinakaoyan.com/tiaoji/schoollist/pagenum/{}.shtml"
-    print(url_chinakaoyan)
+    print(xmu_content)
 
-    urls_chinakaoyan = [url_chinakaoyan.format(str(i)) for i in range(1,20)]
+    url_chinakaoyan = "http://www.chinakaoyan.com/tiaoji/schoollist/pagenum/{}.shtml"
+    urls_chinakaoyan = [url_chinakaoyan.format(str(i)) for i in range(1,100)]
     for url in urls_chinakaoyan:
         get_info_chinakaoyan(url)
     chain_kaoyan_content = "中国考研网 "+ today+" 更新调剂条目条数： " + str(chinakaoyan_count)
