@@ -96,7 +96,9 @@ def get_info_xmc(url):
                 release_time = l_child_child[4].get_text()
 
                 get_y_m_d = release_time.split()[0]
-                if True:#get_y_m_d == today:
+                if get_y_m_d == today:
+                    xmu_count=xmu_count+1
+                if True:#
                     global xmu_count
                     xmu_count=xmu_count+1
                     text_list.append(shool_info)#,'学校'
@@ -127,11 +129,15 @@ def get_info_chinakaoyan(url):
         school_info = info.find('span',class_='school')
         name_info = info.find('span',class_='name')
         title_link_info = info.find('span',class_='title')
-        link_info = title_link_info.find('a').get('href')
+        link_info=''
+        if link_info != None:
+            link_info = title_link_info.find('a').get('href')
         release_time_info = info.find('span',class_='time')
         get_y_m_d = release_time_info.get_text().split()[0]
        # print(get_y_m_d)
-        if True:#get_y_m_d == today:
+       if get_y_m_d == today:
+           chinakaoyan_count=chinakaoyan_count+1
+        if True:#
             global chinakaoyan_count
             chinakaoyan_count=chinakaoyan_count+1        
             text_list.append(title_link_info.get_text())#'标题',
@@ -163,7 +169,9 @@ def get_info_eol(url):
         school_info = info.find('span',class_='school')
         name_info = info.find('span',class_='name')
         title_link_info = info.find('span',class_='title')
-        link_info = title_link_info.find('a').get('href')
+        link_info=''
+        if title_link_info != None:
+            link_info = title_link_info.find('a').get('href')
         release_time_info = info.find('span',class_='time')
         
         text_list.append(title_link_info.get_text())#'标题',
@@ -186,7 +194,7 @@ passw_lxf = 'ZVENGRMQAKMXXYUC'
 # passw_lxf = os.environ.get("lixiangfu@146")
 
 def sendMail(content):
-    receiver=['1632046131@qq.com']#'755438454@qq.com',
+    receiver=['755438454@qq.com','1632046131@qq.com','jzsmail@163.com']#
     smptp = smtplib.SMTP_SSL(mailHost,mailPort)
     smptp.login(user=user_lxf,password=passw_lxf)
 
@@ -210,7 +218,7 @@ def sendMail(content):
 if __name__=="__main__":
     #
     url = "http://muchong.com/bbs/kaoyan.php?&page={}"
-    urls = [url.format(str(i)) for i in range(1,300)]
+    urls = [url.format(str(i)) for i in range(1,500)]
     for url in urls:
         get_info_xmc(url)
     xmu_content = "小木虫 "+ today+" 更新调剂条目条数： " + str(xmu_count)
