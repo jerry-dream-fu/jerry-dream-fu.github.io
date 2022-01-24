@@ -35,29 +35,29 @@ today = datetime.datetime.now().strftime("%Y-%m-%d")
 current_path = os.getcwd()
 save_file = current_path+'/info.xlsx'
 
-#wb = 1
+wb = 1
 worksheet_1 = 1
-#worksheet_2_chinakaoyan = 1
+worksheet_2_chinakaoyan = 1
 
 xlsx_list=['标题','学校','专业','调剂人数','发布时间','链接']
-#if os.path.exists(save_file):#true 
+if os.path.exists(save_file):#true 
     #global worksheet_1
     #global worksheet_2_chinakaoyan
     #global wb
-#    wb = openpyxl.load_workbook(save_file)
-#    sheet_names = wb.sheetnames
-#    worksheet_1 = wb[sheet_names[0]]#'小木虫'
-#    worksheet_2_chinakaoyan=wb[sheet_names[1]]#'中国考研网'
-#else:
+    wb = openpyxl.load_workbook(save_file)
+    sheet_names = wb.sheetnames
+    worksheet_1 = wb[sheet_names[0]]#'小木虫'
+    worksheet_2_chinakaoyan=wb[sheet_names[1]]#'中国考研网'
+else:
     #global worksheet_1
     #global worksheet_2_chinakaoyan
     #global wb
-wb = Workbook()
-worksheet_1 = wb.active
-worksheet_1.title= '小木虫'
-worksheet_1.append(xlsx_list)
-worksheet_2_chinakaoyan=wb.create_sheet('中国考研网')
-worksheet_2_chinakaoyan.append(xlsx_list)
+    wb = Workbook()
+    worksheet_1 = wb.active
+    worksheet_1.title= '小木虫'
+    worksheet_1.append(xlsx_list)
+    worksheet_2_chinakaoyan=wb.create_sheet('中国考研网')
+    worksheet_2_chinakaoyan.append(xlsx_list)
     
 #three sheet
 
@@ -216,7 +216,7 @@ def sendMail(content):
 if __name__=="__main__":
     #
     url = "http://muchong.com/bbs/kaoyan.php?&page={}"
-    urls = [url.format(str(i)) for i in range(1,100)]
+    urls = [url.format(str(i)) for i in range(1,10)]
     for url in urls:
         get_info_xmc(url)
     xmu_content = "小木虫 "+ today+" 更新调剂条目条数： " + str(xmu_count)

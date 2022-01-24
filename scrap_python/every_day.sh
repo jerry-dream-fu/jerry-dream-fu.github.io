@@ -1,3 +1,4 @@
 #!/bin/bash
-cd /home/ubuntu/python;
-/usr/bin/python3.6 scrap.py >> /home/ubuntu/python/log.txt
+path=$(pwd)
+cd $path
+/usr/bin/python3.6 scrap.py >> $path/log.txt
