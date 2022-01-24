@@ -28,6 +28,9 @@ import requests
 ##中国教育在线     http://www.eol.cn/html/ky/kytj/info.shtml
 # save to excel
 #get today info
+#爬取逻辑，每隔三个小时检查一次，每次在行尾追加
+#同时检查行尾20行有无已经保存的当前链接
+
 today = datetime.datetime.now().strftime("%Y-%m-%d")
 
 
@@ -61,7 +64,20 @@ else:
     
 #three sheet
 
-
+link_list=[]
+def get_link_list(sheet_name):
+    global link_list
+    link_list.clear()
+    ws = wb.get_sheet_by_name(sheet_name)
+    max_c =ws.max_column
+    if max_c-20 > 1:
+        for x in range(max_c-20, max_c):
+            link_list.append(ws.cell(row=x, column=max_c).value) 
+            print(ws.cell(row=x, column=max_c).value)
+    else:
+        for x in range(1,max_c):
+            link_list.append(ws.cell(row=x, column=max_c).value)
+            print(ws.cell(row=x, column=max_c).value)      
 
 xmu_count=0
 def get_info_xmc(url):  
@@ -75,6 +91,7 @@ def get_info_xmc(url):
     info_list = bsObj.findAll("tbody",{"class":"forum_body_manage"})## 一页这一个tag
     #print(len(info_list))
     #info in full page
+    #final_result=[]
     for l in info_list:
         #a item in info
         for l_child in l.children:
@@ -96,16 +113,20 @@ def get_info_xmc(url):
                 release_time = l_child_child[4].get_text()
 
                 get_y_m_d = release_time.split()[0]
-                if get_y_m_d == today:
+                if link_info in link_list:
+                    print("已经存在"+link_info)
+                if get_y_m_d == today and link_info not in link_list:
                     global xmu_count
                     xmu_count=xmu_count+1
-                if True:#
                     text_list.append(shool_info)#,'学校'
                     text_list.append(major_info)#'专业'
                     text_list.append(num_info)#'调剂人数
                     text_list.append(release_time)#'发布时间'
                     text_list.append(link_info)#'链接'
                     worksheet_1.append(text_list)
+
+    #while final_result:
+    #    worksheet_1.append(final_result.pop())
     
     wb.save(filename=save_file)
 
@@ -122,6 +143,7 @@ def get_info_chinakaoyan(url):
     info_list = bsObj.findAll("div",{"class":"info-item font14"})## 一页这一个tag
     #print(type(info_list))
     #info in full page
+    final_result=[]
     for info in info_list:
         #print(type(info))
         text_list=[]
@@ -130,66 +152,34 @@ def get_info_chinakaoyan(url):
         title_link_info = info.find('span',class_='title')
         link_info=''
         if title_link_info.find('a') != None:
-            link_info = title_link_info.find('a').get('href')
+            link_info = 'http://www.chinakaoyan.com/'+ title_link_info.find('a').get('href')
         release_time_info = info.find('span',class_='time')
         get_y_m_d = release_time_info.get_text().split()[0]
        # print(get_y_m_d)
-        if get_y_m_d == today:
+        if link_info in link_list:
+            print("已经存在"+link_info)
+        if get_y_m_d == today and link_info not in link_list:
             global chinakaoyan_count   
-            chinakaoyan_count = chinakaoyan_count + 1
-        if True:#     
+            chinakaoyan_count = chinakaoyan_count + 1    
             text_list.append(title_link_info.get_text())#'标题',
             text_list.append(school_info.get_text())#'学校',
             text_list.append(name_info.get_text())#'专业',
             text_list.append('')#'调剂人数',
             text_list.append(release_time_info.get_text())#'发布时间',
-            text_list.append('http://www.chinakaoyan.com/'+link_info)#'链接'
+            text_list.append(link_info)#'链接'
             worksheet_2_chinakaoyan.append(text_list)
-  
+
+    #while final_result: 
+    #    worksheet_2_chinakaoyan.append(final_result.pop())    
     wb.save(filename=save_file)
                 
-#worksheet_eol=wb.create_sheet('中国教育在线')
-#worksheet_eol.append(xlsx_list)
-def get_info_eol(url):
-    headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'}
-    req=urllib.request.Request(url,headers=headers)
-    res=urlopen(req)
-    bsObj = BeautifulSoup(res,features="lxml")
-    #body > div.bg > div:nth-child(9) > div:nth-child(2) > table > tbody.forum_body_manage
-    #body > div.bg > div:nth-child(9) > div:nth-child(2) > table > tbody.forum_body_manage > tr:nth-child(8) > td.xmc_lp20
-    info_list = bsObj.findAll("div",{"class":"info-item font14"})## 一页这一个tag
-    #print(type(info_list))
-    #info in full page
-    for info in info_list:
-        #print(type(info))
-        text_list=[]
-        school_info = info.find('span',class_='school')
-        name_info = info.find('span',class_='name')
-        title_link_info = info.find('span',class_='title')
-        link_info=''
-        if title_link_info.find('a') != None:
-            link_info = title_link_info.find('a').get('href')
-        release_time_info = info.find('span',class_='time')
-        
-        text_list.append(title_link_info.get_text())#'标题',
-        text_list.append(school_info.get_text())#'学校',
-        text_list.append(name_info.get_text())#'专业',
-        text_list.append('')#'调剂人数',
-        text_list.append(release_time_info.get_text())#'发布时间',
-        text_list.append('http://www.chinakaoyan.com/'+link_info)#'链接'
-        worksheet_chinakaoyan.append(text_list)
 
 
-    wb.save(filename=save_file)
 
 mailHost = 'smtp.163.com'
 mailPort = 465
-
 user_lxf='lxf1632046131@163.com'
 passw_lxf = 'ZVENGRMQAKMXXYUC'
-#os.environ.get("ZVENGRMQAKMXXYUC")
-# passw_lxf = os.environ.get("lixiangfu@146")
 
 def sendMail(content):
     receiver=['755438454@qq.com','1632046131@qq.com','jzsmail@163.com']#
@@ -216,21 +206,23 @@ def sendMail(content):
 if __name__=="__main__":
     #
     url = "http://muchong.com/bbs/kaoyan.php?&page={}"
-    urls = [url.format(str(i)) for i in range(1,10)]
+    get_link_list('小木虫')
+    urls = [url.format(str(i)) for i in range(1,20)]
     for url in urls:
         get_info_xmc(url)
-    xmu_content = "小木虫 "+ today+" 更新调剂条目条数： " + str(xmu_count)
+    xmu_content = "小木虫 "+datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +" 更新调剂条目条数： " + str(xmu_count)
     print(xmu_content)
 
     url_chinakaoyan = "http://www.chinakaoyan.com/tiaoji/schoollist/pagenum/{}.shtml"
-    urls_chinakaoyan = [url_chinakaoyan.format(str(i)) for i in range(1,20)]
+    get_link_list('中国考研网')
+    urls_chinakaoyan = [url_chinakaoyan.format(str(i)) for i in range(1,10)]
     for url in urls_chinakaoyan:
         get_info_chinakaoyan(url)
-    chain_kaoyan_content = "中国考研网 "+ today+" 更新调剂条目条数： " + str(chinakaoyan_count)
+    chain_kaoyan_content = "中国考研网 "+datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +" 更新调剂条目条数： " + str(chinakaoyan_count)
     print(chain_kaoyan_content)
 
     #print(type(today))
-    content = today +" 更新调剂条目条数： " + str(xmu_count + chinakaoyan_count)
+    content = "截止到"+datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +" 更新调剂条目条数： " + str(xmu_count + chinakaoyan_count)
     print(content)
     if xmu_count + chinakaoyan_count > 0:
         sendMail(content+': '+xmu_content+' '+chain_kaoyan_content)
