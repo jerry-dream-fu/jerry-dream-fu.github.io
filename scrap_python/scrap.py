@@ -97,10 +97,9 @@ def get_info_xmc(url):
 
                 get_y_m_d = release_time.split()[0]
                 if get_y_m_d == today:
-                    xmu_count=xmu_count+1
-                if True:#
                     global xmu_count
                     xmu_count=xmu_count+1
+                if True:#
                     text_list.append(shool_info)#,'学校'
                     text_list.append(major_info)#'专业'
                     text_list.append(num_info)#'调剂人数
@@ -130,16 +129,15 @@ def get_info_chinakaoyan(url):
         name_info = info.find('span',class_='name')
         title_link_info = info.find('span',class_='title')
         link_info=''
-        if link_info != None:
+        if title_link_info.find('a') != None:
             link_info = title_link_info.find('a').get('href')
         release_time_info = info.find('span',class_='time')
         get_y_m_d = release_time_info.get_text().split()[0]
        # print(get_y_m_d)
-       if get_y_m_d == today:
-           chinakaoyan_count=chinakaoyan_count+1
-        if True:#
-            global chinakaoyan_count
-            chinakaoyan_count=chinakaoyan_count+1        
+        if get_y_m_d == today:
+            global chinakaoyan_count   
+            chinakaoyan_count = chinakaoyan_count + 1
+        if True:#     
             text_list.append(title_link_info.get_text())#'标题',
             text_list.append(school_info.get_text())#'学校',
             text_list.append(name_info.get_text())#'专业',
@@ -170,7 +168,7 @@ def get_info_eol(url):
         name_info = info.find('span',class_='name')
         title_link_info = info.find('span',class_='title')
         link_info=''
-        if title_link_info != None:
+        if title_link_info.find('a') != None:
             link_info = title_link_info.find('a').get('href')
         release_time_info = info.find('span',class_='time')
         
@@ -218,14 +216,14 @@ def sendMail(content):
 if __name__=="__main__":
     #
     url = "http://muchong.com/bbs/kaoyan.php?&page={}"
-    urls = [url.format(str(i)) for i in range(1,500)]
+    urls = [url.format(str(i)) for i in range(1,100)]
     for url in urls:
         get_info_xmc(url)
     xmu_content = "小木虫 "+ today+" 更新调剂条目条数： " + str(xmu_count)
     print(xmu_content)
 
     url_chinakaoyan = "http://www.chinakaoyan.com/tiaoji/schoollist/pagenum/{}.shtml"
-    urls_chinakaoyan = [url_chinakaoyan.format(str(i)) for i in range(1,100)]
+    urls_chinakaoyan = [url_chinakaoyan.format(str(i)) for i in range(1,20)]
     for url in urls_chinakaoyan:
         get_info_chinakaoyan(url)
     chain_kaoyan_content = "中国考研网 "+ today+" 更新调剂条目条数： " + str(chinakaoyan_count)
