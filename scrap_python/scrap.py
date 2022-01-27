@@ -19,6 +19,9 @@ from email.mime.text import MIMEText
 from email.header import Header
 from typing import ContextManager
 import requests
+#from win32com.client import Dispatch
+
+
 
 ##
 ##小木虫
@@ -38,23 +41,59 @@ today = datetime.datetime.now().strftime("%Y-%m-%d")
 current_path = os.getcwd()
 save_file = current_path+'/info.xlsx'
 
+#def just_open(filename):
+#    xlApp = Dispatch("Excel.Application")
+ #   xlApp.Visible = False
+#    xlBook = xlApp.Workbooks.Open(filename)
+ #   xlBook.Save()
+ #   xlBook.Close()
+
+
 wb = 1
 worksheet_1 = 1
 worksheet_2_chinakaoyan = 1
+link_list_xmu=[]
+link_list_chainkaoyan=[]
 
 xlsx_list=['标题','学校','专业','调剂人数','发布时间','链接']
+
 if os.path.exists(save_file):#true 
     #global worksheet_1
     #global worksheet_2_chinakaoyan
     #global wb
-    wb = openpyxl.load_workbook(save_file)
+    print("excel exists")
+    wb = openpyxl.load_workbook(save_file,data_only=True)
     sheet_names = wb.sheetnames
     worksheet_1 = wb[sheet_names[0]]#'小木虫'
+    max_c = worksheet_1.max_column#  column
+    max_r = worksheet_1.max_row#  rows
+    print("column num:"+str(max_c))
+    print("row num:"+str(max_r))
+    if max_r-20 > 1:
+        for x in range(max_r-20, max_c):
+            link_list_xmu.append(worksheet_1.cell(row=x, column=max_c).value) 
+            print(worksheet_1.cell(row=x, column=max_c).value)
+    else:
+        for x in range(1,max_r):
+            link_list_xmu.append(worksheet_1.cell(row=x, column=max_c).value)
+            print(worksheet_1.cell(row=x, column=max_c).value)  
+
     worksheet_2_chinakaoyan=wb[sheet_names[1]]#'中国考研网'
+    max_c =worksheet_2_chinakaoyan.max_column
+    max_r = worksheet_1.max_row#  rows
+    if max_r-20 > 1:
+        for x in range(max_r-20, max_c):
+            link_list_chainkaoyan.append(worksheet_2_chinakaoyan.cell(row=x, column=max_c).value) 
+            print(worksheet_2_chinakaoyan.cell(row=x, column=max_c).value)
+    else:
+        for x in range(1,max_r):
+            link_list_chainkaoyan.append(worksheet_2_chinakaoyan.cell(row=x, column=max_c).value)
+            print(worksheet_2_chinakaoyan.cell(row=x, column=max_c).value)  
 else:
     #global worksheet_1
     #global worksheet_2_chinakaoyan
     #global wb
+    print("excel not exists")
     wb = Workbook()
     worksheet_1 = wb.active
     worksheet_1.title= '小木虫'
@@ -64,20 +103,9 @@ else:
     
 #three sheet
 
-link_list=[]
-def get_link_list(sheet_name):
-    global link_list
-    link_list.clear()
-    ws = wb.get_sheet_by_name(sheet_name)
-    max_c =ws.max_column
-    if max_c-20 > 1:
-        for x in range(max_c-20, max_c):
-            link_list.append(ws.cell(row=x, column=max_c).value) 
-            print(ws.cell(row=x, column=max_c).value)
-    else:
-        for x in range(1,max_c):
-            link_list.append(ws.cell(row=x, column=max_c).value)
-            print(ws.cell(row=x, column=max_c).value)      
+
+    
+    
 
 xmu_count=0
 def get_info_xmc(url):  
@@ -113,9 +141,12 @@ def get_info_xmc(url):
                 release_time = l_child_child[4].get_text()
 
                 get_y_m_d = release_time.split()[0]
-                if link_info in link_list:
+                isExist=False
+                if link_info in link_list_xmu:
+                    isExist=True
                     print("已经存在"+link_info)
-                if get_y_m_d == today and link_info not in link_list:
+                print(isExist)
+                if get_y_m_d == today and not isExist:
                     global xmu_count
                     xmu_count=xmu_count+1
                     text_list.append(shool_info)#,'学校'
@@ -156,9 +187,11 @@ def get_info_chinakaoyan(url):
         release_time_info = info.find('span',class_='time')
         get_y_m_d = release_time_info.get_text().split()[0]
        # print(get_y_m_d)
-        if link_info in link_list:
+        isExist=False
+        if link_info in link_list_chainkaoyan:
+            isExist = True
             print("已经存在"+link_info)
-        if get_y_m_d == today and link_info not in link_list:
+        if get_y_m_d == today and not isExist:
             global chinakaoyan_count   
             chinakaoyan_count = chinakaoyan_count + 1    
             text_list.append(title_link_info.get_text())#'标题',
@@ -182,7 +215,7 @@ user_lxf='lxf1632046131@163.com'
 passw_lxf = 'ZVENGRMQAKMXXYUC'
 
 def sendMail(content):
-    receiver=['755438454@qq.com','1632046131@qq.com','jzsmail@163.com']#
+    receiver=['1632046131@qq.com','755438454@qq.com','jzsmail@163.com']#
     smptp = smtplib.SMTP_SSL(mailHost,mailPort)
     smptp.login(user=user_lxf,password=passw_lxf)
 
@@ -206,7 +239,6 @@ def sendMail(content):
 if __name__=="__main__":
     #
     url = "http://muchong.com/bbs/kaoyan.php?&page={}"
-    get_link_list('小木虫')
     urls = [url.format(str(i)) for i in range(1,20)]
     for url in urls:
         get_info_xmc(url)
@@ -214,7 +246,6 @@ if __name__=="__main__":
     print(xmu_content)
 
     url_chinakaoyan = "http://www.chinakaoyan.com/tiaoji/schoollist/pagenum/{}.shtml"
-    get_link_list('中国考研网')
     urls_chinakaoyan = [url_chinakaoyan.format(str(i)) for i in range(1,10)]
     for url in urls_chinakaoyan:
         get_info_chinakaoyan(url)
