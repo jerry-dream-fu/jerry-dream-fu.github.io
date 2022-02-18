@@ -29,12 +29,16 @@ import requests
 ##中国考研网
 ##    http://www.chinakaoyan.com/tiaoji/schoollist.shtml
 ##中国教育在线     http://www.eol.cn/html/ky/kytj/info.shtml
+##
+##51考研
+##https://www.51kywang.com/51kaoyanwang/vip_doc/25221089_0_0_1.html
 # save to excel
 #get today info
 #爬取逻辑，每隔三个小时检查一次，每次在行尾追加
 #同时检查行尾20行有无已经保存的当前链接
 
 today = datetime.datetime.now().strftime("%Y-%m-%d")
+print(today)
 
 
 
@@ -54,8 +58,10 @@ worksheet_1 = 1
 worksheet_2_chinakaoyan = 1
 link_list_xmu=[]
 link_list_chainkaoyan=[]
+link_list_fiveonekaoyan=[]
 
 xlsx_list=['标题','学校','专业','调剂人数','发布时间','链接']
+xlsx_list_fiveone=['标题','描述','发布时间','链接']
 
 if os.path.exists(save_file):#true 
     #global worksheet_1
@@ -71,24 +77,48 @@ if os.path.exists(save_file):#true
     print("row num:"+str(max_r))
     if max_r-20 > 1:
         for x in range(max_r-20, max_c):
-            link_list_xmu.append(worksheet_1.cell(row=x, column=max_c).value) 
-            print(worksheet_1.cell(row=x, column=max_c).value)
+            v = worksheet_1.cell(row=x, column=max_c).value
+            if v is not None:
+                link_list_xmu.append(v.split('/')[-1]) 
+                #print(v.split('/')[-1])
     else:
         for x in range(1,max_r):
-            link_list_xmu.append(worksheet_1.cell(row=x, column=max_c).value)
-            print(worksheet_1.cell(row=x, column=max_c).value)  
+            v = worksheet_1.cell(row=x, column=max_c).value
+            if v is not None:
+                link_list_xmu.append(v.split('/')[-1])
+                #print(v.split('/')[-1])  
 
     worksheet_2_chinakaoyan=wb[sheet_names[1]]#'中国考研网'
     max_c =worksheet_2_chinakaoyan.max_column
     max_r = worksheet_1.max_row#  rows
     if max_r-20 > 1:
         for x in range(max_r-20, max_c):
-            link_list_chainkaoyan.append(worksheet_2_chinakaoyan.cell(row=x, column=max_c).value) 
-            print(worksheet_2_chinakaoyan.cell(row=x, column=max_c).value)
+            v = worksheet_2_chinakaoyan.cell(row=x, column=max_c).value
+            if v is not None:
+                link_list_chainkaoyan.append(v.split('/')[-1]) 
+                #print(v.split('/')[-1])
     else:
         for x in range(1,max_r):
-            link_list_chainkaoyan.append(worksheet_2_chinakaoyan.cell(row=x, column=max_c).value)
-            print(worksheet_2_chinakaoyan.cell(row=x, column=max_c).value)  
+            v = worksheet_2_chinakaoyan.cell(row=x, column=max_c).value
+            if v is not None:
+                link_list_chainkaoyan.append(v.split('/')[-1]) 
+                #print(v.split('/')[-1])
+
+    worksheet_3_fiveone=wb[sheet_names[2]]#'51考研网'
+    max_c =worksheet_3_fiveone.max_column
+    max_r = worksheet_1.max_row#  rows
+    if max_r-20 > 1:
+        for x in range(max_r-20, max_c):
+            v = worksheet_3_fiveone.cell(row=x, column=max_c).value
+            if v is not None:
+                link_list_fiveonekaoyan.append(v.split('/')[-1]) 
+                #print(v.split('/')[-1])
+    else:
+        for x in range(1,max_r):
+            v = worksheet_3_fiveone.cell(row=x, column=max_c).value
+            if v is not None:
+                link_list_fiveonekaoyan.append(v.split('/')[-1]) 
+                #print(v.split('/')[-1])          
 else:
     #global worksheet_1
     #global worksheet_2_chinakaoyan
@@ -100,6 +130,8 @@ else:
     worksheet_1.append(xlsx_list)
     worksheet_2_chinakaoyan=wb.create_sheet('中国考研网')
     worksheet_2_chinakaoyan.append(xlsx_list)
+    worksheet_3_fiveone=wb.create_sheet('51考研网')
+    worksheet_3_fiveone.append(xlsx_list_fiveone)
     
 #three sheet
 
@@ -142,10 +174,10 @@ def get_info_xmc(url):
 
                 get_y_m_d = release_time.split()[0]
                 isExist=False
-                if link_info in link_list_xmu:
+                link_info_last = link_info.split('/')[-1]
+                if link_info_last in link_list_xmu:
                     isExist=True
-                    print("已经存在"+link_info)
-                print(isExist)
+                    print("已经存在"+link_info_last)
                 if get_y_m_d == today and not isExist:
                     global xmu_count
                     xmu_count=xmu_count+1
@@ -188,9 +220,10 @@ def get_info_chinakaoyan(url):
         get_y_m_d = release_time_info.get_text().split()[0]
        # print(get_y_m_d)
         isExist=False
-        if link_info in link_list_chainkaoyan:
+        link_info_last = link_info.split('/')[-1]
+        if link_info_last in link_list_chainkaoyan:
             isExist = True
-            print("已经存在"+link_info)
+            print("已经存在"+link_info_last)
         if get_y_m_d == today and not isExist:
             global chinakaoyan_count   
             chinakaoyan_count = chinakaoyan_count + 1    
@@ -202,12 +235,50 @@ def get_info_chinakaoyan(url):
             text_list.append(link_info)#'链接'
             worksheet_2_chinakaoyan.append(text_list)
 
-    #while final_result: 
-    #    worksheet_2_chinakaoyan.append(final_result.pop())    
+
     wb.save(filename=save_file)
                 
 
-
+fiveone_kaoyan_count=0
+def get_info_fiveonekaoyan(url):
+    headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'}
+    req=urllib.request.Request(url,headers=headers)
+    res=urlopen(req)
+    bsObj = BeautifulSoup(res,features="lxml")
+    #body > div.bg > div:nth-child(9) > div:nth-child(2) > table > tbody.forum_body_manage
+    #body > div.bg > div:nth-child(9) > div:nth-child(2) > table > tbody.forum_body_manage > tr:nth-child(8) > td.xmc_lp20
+    info_list = bsObj.findAll("span",{"class":"text-list-a"})## 一页这一个tag
+    #print(type(info_list))
+    #info in full page
+    final_result=[]
+    for info in info_list:
+        #print(type(info))
+        text_list=[]
+        #print(info)
+        title_info = info.find('a').get('title')
+        link_info = info.find('a').get('href')
+        time_info = info.parent.find('span',{"class":"text-list-times"}).get_text()
+        link_info = 'https://www.51kywang.com'+ link_info
+        link_info_content=urllib.request.Request(link_info,headers=headers)
+        link_info_content_text=urlopen(link_info_content)
+        link_info_bsObj = BeautifulSoup(link_info_content_text,features="lxml")
+        description = link_info_bsObj.find("meta",{"name":"description"}).get('content')## 一页这一个tag
+        isExist=False
+        link_info_last = link_info.split('/')[-1]
+        if link_info_last in link_list_fiveonekaoyan:
+            isExist = True
+            print("已经存在"+link_info_last)
+        if time_info == today and not isExist:
+            global fiveone_kaoyan_count   
+            fiveone_kaoyan_count = fiveone_kaoyan_count + 1    
+            text_list.append(title_info)
+            text_list.append(description)
+            text_list.append(time_info)
+            text_list.append(link_info)
+            worksheet_3_fiveone.append(text_list)
+ 
+    wb.save(filename=save_file)
 
 mailHost = 'smtp.163.com'
 mailPort = 465
@@ -237,7 +308,7 @@ def sendMail(content):
     smptp.sendmail(user_lxf,receiver,msg.as_string())
 
 if __name__=="__main__":
-    #
+    
     url = "http://muchong.com/bbs/kaoyan.php?&page={}"
     urls = [url.format(str(i)) for i in range(1,20)]
     for url in urls:
@@ -252,10 +323,20 @@ if __name__=="__main__":
     chain_kaoyan_content = "中国考研网 "+datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +" 更新调剂条目条数： " + str(chinakaoyan_count)
     print(chain_kaoyan_content)
 
-    #print(type(today))
-    content = "截止到"+datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +" 更新调剂条目条数： " + str(xmu_count + chinakaoyan_count)
+    url_fivekaoyan = "https://www.51kywang.com/51kaoyanwang/vip_doc/25221089_0_0_{}.html"
+    urls_fiveonekaoyan = [url_fivekaoyan.format(str(i)) for i in range(1,3)]
+    for url in urls_fiveonekaoyan:
+        get_info_fiveonekaoyan(url)
+    fiveone_kaoyan_content = "51考研网 "+datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +" 更新调剂条目条数： " + str(fiveone_kaoyan_count)
+    print(fiveone_kaoyan_content)
+
+    ##print(type(today))
+    content = "截止到"+datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +" 更新调剂条目条数： " + str(xmu_count + chinakaoyan_count+fiveone_kaoyan_count)
     print(content)
     if xmu_count + chinakaoyan_count > 0:
-        sendMail(content+': '+xmu_content+' '+chain_kaoyan_content)
+        sendMail(content+': '+xmu_content+' '+chain_kaoyan_content+fiveone_kaoyan_content)
+
+
+
     
 
