@@ -71,54 +71,8 @@ if os.path.exists(save_file):#true
     wb = openpyxl.load_workbook(save_file,data_only=True)
     sheet_names = wb.sheetnames
     worksheet_1 = wb[sheet_names[0]]#'小木虫'
-    max_c = worksheet_1.max_column#  column
-    max_r = worksheet_1.max_row#  rows
-    print("column num:"+str(max_c))
-    print("row num:"+str(max_r))
-    if max_r-20 > 1:
-        for x in range(max_r-20, max_c):
-            v = worksheet_1.cell(row=x, column=max_c).value
-            if v is not None:
-                link_list_xmu.append(v.split('/')[-1]) 
-                #print(v.split('/')[-1])
-    else:
-        for x in range(1,max_r):
-            v = worksheet_1.cell(row=x, column=max_c).value
-            if v is not None:
-                link_list_xmu.append(v.split('/')[-1])
-                #print(v.split('/')[-1])  
-
     worksheet_2_chinakaoyan=wb[sheet_names[1]]#'中国考研网'
-    max_c =worksheet_2_chinakaoyan.max_column
-    max_r = worksheet_1.max_row#  rows
-    if max_r-20 > 1:
-        for x in range(max_r-20, max_c):
-            v = worksheet_2_chinakaoyan.cell(row=x, column=max_c).value
-            if v is not None:
-                link_list_chainkaoyan.append(v.split('/')[-1]) 
-                #print(v.split('/')[-1])
-    else:
-        for x in range(1,max_r):
-            v = worksheet_2_chinakaoyan.cell(row=x, column=max_c).value
-            if v is not None:
-                link_list_chainkaoyan.append(v.split('/')[-1]) 
-                #print(v.split('/')[-1])
-
-    worksheet_3_fiveone=wb[sheet_names[2]]#'51考研网'
-    max_c =worksheet_3_fiveone.max_column
-    max_r = worksheet_1.max_row#  rows
-    if max_r-20 > 1:
-        for x in range(max_r-20, max_c):
-            v = worksheet_3_fiveone.cell(row=x, column=max_c).value
-            if v is not None:
-                link_list_fiveonekaoyan.append(v.split('/')[-1]) 
-                #print(v.split('/')[-1])
-    else:
-        for x in range(1,max_r):
-            v = worksheet_3_fiveone.cell(row=x, column=max_c).value
-            if v is not None:
-                link_list_fiveonekaoyan.append(v.split('/')[-1]) 
-                #print(v.split('/')[-1])          
+    worksheet_3_fiveone=wb[sheet_names[2]]#'51考研网'        
 else:
     #global worksheet_1
     #global worksheet_2_chinakaoyan
@@ -175,10 +129,7 @@ def get_info_xmc(url):
                 get_y_m_d = release_time.split()[0]
                 isExist=False
                 link_info_last = link_info.split('/')[-1]
-                if link_info_last in link_list_xmu:
-                    isExist=True
-                    print("已经存在"+link_info_last)
-                if get_y_m_d == today and not isExist:
+                if True:
                     global xmu_count
                     xmu_count=xmu_count+1
                     text_list.append(shool_info)#,'学校'
@@ -221,10 +172,7 @@ def get_info_chinakaoyan(url):
        # print(get_y_m_d)
         isExist=False
         link_info_last = link_info.split('/')[-1]
-        if link_info_last in link_list_chainkaoyan:
-            isExist = True
-            print("已经存在"+link_info_last)
-        if get_y_m_d == today and not isExist:
+        if True:
             global chinakaoyan_count   
             chinakaoyan_count = chinakaoyan_count + 1    
             text_list.append(title_link_info.get_text())#'标题',
@@ -245,6 +193,7 @@ def get_info_fiveonekaoyan(url):
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'}
     req=urllib.request.Request(url,headers=headers)
     res=urlopen(req)
+    print("open link")
     bsObj = BeautifulSoup(res,features="lxml")
     #body > div.bg > div:nth-child(9) > div:nth-child(2) > table > tbody.forum_body_manage
     #body > div.bg > div:nth-child(9) > div:nth-child(2) > table > tbody.forum_body_manage > tr:nth-child(8) > td.xmc_lp20
@@ -265,12 +214,8 @@ def get_info_fiveonekaoyan(url):
         link_info_bsObj = BeautifulSoup(link_info_content_text,features="lxml")
         description = link_info_bsObj.find("meta",{"name":"description"}).get('content')## 一页这一个tag
         isExist=False
-        get_y_m_d = time_info.split()[0]
         link_info_last = link_info.split('/')[-1]
-        if link_info_last in link_list_fiveonekaoyan:
-            isExist = True
-            print("已经存在"+link_info_last)
-        if get_y_m_d == today and not isExist:
+        if True:
             global fiveone_kaoyan_count   
             fiveone_kaoyan_count = fiveone_kaoyan_count + 1    
             text_list.append(title_info)
@@ -311,7 +256,7 @@ def sendMail(content):
 if __name__=="__main__":
     
     url = "http://muchong.com/bbs/kaoyan.php?&page={}"
-    urls = [url.format(str(i)) for i in range(1,20)]
+    urls = [url.format(str(i)) for i in range(1,60)]
     for url in urls:
         get_info_xmc(url)
     xmu_content = "小木虫 "+datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +" 更新调剂条目条数： " + str(xmu_count)
@@ -325,7 +270,7 @@ if __name__=="__main__":
     print(chain_kaoyan_content)
 
     url_fivekaoyan = "https://www.51kywang.com/51kaoyanwang/vip_doc/25221089_0_0_{}.html"
-    urls_fiveonekaoyan = [url_fivekaoyan.format(str(i)) for i in range(1,10)]
+    urls_fiveonekaoyan = [url_fivekaoyan.format(str(i)) for i in range(1,7)]
     for url in urls_fiveonekaoyan:
         get_info_fiveonekaoyan(url)
     fiveone_kaoyan_content = "51考研网 "+datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +" 更新调剂条目条数： " + str(fiveone_kaoyan_count)
@@ -334,8 +279,8 @@ if __name__=="__main__":
     ##print(type(today))
     content = "截止到"+datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +" 更新调剂条目条数： " + str(xmu_count + chinakaoyan_count+fiveone_kaoyan_count)
     print(content)
-    if xmu_count + chinakaoyan_count > 0:
-        sendMail(content+': '+xmu_content+' '+chain_kaoyan_content+fiveone_kaoyan_content)
+    #if xmu_count + chinakaoyan_count > 0:
+       # sendMail(content+': '+xmu_content+' '+chain_kaoyan_content+fiveone_kaoyan_content)
 
 
 
