@@ -61,6 +61,7 @@ link_list_chainkaoyan=[]
 link_list_fiveonekaoyan=[]
 
 xlsx_list=['标题','学校','专业','调剂人数','发布时间','链接']
+xlsx_list_chinakaoyan=['标题','学校','专业','发布时间','链接']
 xlsx_list_fiveone=['标题','描述','发布时间','链接']
 
 if os.path.exists(save_file):#true 
@@ -83,7 +84,7 @@ else:
     worksheet_1.title= '小木虫'
     worksheet_1.append(xlsx_list)
     worksheet_2_chinakaoyan=wb.create_sheet('中国考研网')
-    worksheet_2_chinakaoyan.append(xlsx_list)
+    worksheet_2_chinakaoyan.append(xlsx_list_chinakaoyan)
     worksheet_3_fiveone=wb.create_sheet('51考研网')
     worksheet_3_fiveone.append(xlsx_list_fiveone)
     

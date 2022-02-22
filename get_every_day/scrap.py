@@ -61,77 +61,22 @@ link_list_chainkaoyan=[]
 link_list_fiveonekaoyan=[]
 
 xlsx_list=['标题','学校','专业','调剂人数','发布时间','链接']
+xlsx_list_chinakaoyan=['标题','学校','专业','发布时间','链接']
 xlsx_list_fiveone=['标题','描述','发布时间','链接']
 
-if os.path.exists(save_file):#true 
+
     #global worksheet_1
     #global worksheet_2_chinakaoyan
     #global wb
-    print("excel exists")
-    wb = openpyxl.load_workbook(save_file,data_only=True)
-    sheet_names = wb.sheetnames
-    worksheet_1 = wb[sheet_names[0]]#'小木虫'
-    max_c = worksheet_1.max_column#  column
-    max_r = worksheet_1.max_row#  rows
-    print("column num:"+str(max_c))
-    print("row num:"+str(max_r))
-    if max_r-20 > 1:
-        for x in range(max_r-20, max_c):
-            v = worksheet_1.cell(row=x, column=max_c).value
-            if v is not None:
-                link_list_xmu.append(v.split('/')[-1]) 
-                #print(v.split('/')[-1])
-    else:
-        for x in range(1,max_r):
-            v = worksheet_1.cell(row=x, column=max_c).value
-            if v is not None:
-                link_list_xmu.append(v.split('/')[-1])
-                #print(v.split('/')[-1])  
-
-    worksheet_2_chinakaoyan=wb[sheet_names[1]]#'中国考研网'
-    max_c =worksheet_2_chinakaoyan.max_column
-    max_r = worksheet_1.max_row#  rows
-    if max_r-20 > 1:
-        for x in range(max_r-20, max_c):
-            v = worksheet_2_chinakaoyan.cell(row=x, column=max_c).value
-            if v is not None:
-                link_list_chainkaoyan.append(v.split('/')[-1]) 
-                #print(v.split('/')[-1])
-    else:
-        for x in range(1,max_r):
-            v = worksheet_2_chinakaoyan.cell(row=x, column=max_c).value
-            if v is not None:
-                link_list_chainkaoyan.append(v.split('/')[-1]) 
-                #print(v.split('/')[-1])
-
-    worksheet_3_fiveone=wb[sheet_names[2]]#'51考研网'
-    max_c =worksheet_3_fiveone.max_column
-    max_r = worksheet_1.max_row#  rows
-    if max_r-20 > 1:
-        for x in range(max_r-20, max_c):
-            v = worksheet_3_fiveone.cell(row=x, column=max_c).value
-            if v is not None:
-                link_list_fiveonekaoyan.append(v.split('/')[-1]) 
-                #print(v.split('/')[-1])
-    else:
-        for x in range(1,max_r):
-            v = worksheet_3_fiveone.cell(row=x, column=max_c).value
-            if v is not None:
-                link_list_fiveonekaoyan.append(v.split('/')[-1]) 
-                #print(v.split('/')[-1])          
-else:
-    #global worksheet_1
-    #global worksheet_2_chinakaoyan
-    #global wb
-    print("excel not exists")
-    wb = Workbook()
-    worksheet_1 = wb.active
-    worksheet_1.title= '小木虫'
-    worksheet_1.append(xlsx_list)
-    worksheet_2_chinakaoyan=wb.create_sheet('中国考研网')
-    worksheet_2_chinakaoyan.append(xlsx_list)
-    worksheet_3_fiveone=wb.create_sheet('51考研网')
-    worksheet_3_fiveone.append(xlsx_list_fiveone)
+print("excel not exists")
+wb = Workbook()
+worksheet_1 = wb.active
+worksheet_1.title= '小木虫'
+worksheet_1.append(xlsx_list)
+worksheet_2_chinakaoyan=wb.create_sheet('中国考研网')
+worksheet_2_chinakaoyan.append(xlsx_list_chinakaoyan)
+worksheet_3_fiveone=wb.create_sheet('51考研网')
+worksheet_3_fiveone.append(xlsx_list_fiveone)
     
 #three sheet
 
@@ -222,7 +167,6 @@ def get_info_chinakaoyan(url):
             text_list.append(title_link_info.get_text())#'标题',
             text_list.append(school_info.get_text())#'学校',
             text_list.append(name_info.get_text())#'专业',
-            text_list.append('')#'调剂人数',
             text_list.append(release_time_info.get_text())#'发布时间',
             text_list.append(link_info)#'链接'
             worksheet_2_chinakaoyan.append(text_list)
@@ -263,8 +207,8 @@ def get_info_fiveonekaoyan(url):
         description = link_info_bsObj.find("meta",{"name":"description"}).get('content')## 一页这一个tag
         isExist=False
         get_y_m_d = time_info.split()[0]
-        if True:#get_y_m_d == today:
-            print(time_info)
+        if get_y_m_d == today:
+            #print(time_info)
             global fiveone_kaoyan_count   
             fiveone_kaoyan_count = fiveone_kaoyan_count + 1    
             text_list.append(title_info)
@@ -272,6 +216,8 @@ def get_info_fiveonekaoyan(url):
             text_list.append(time_info)
             text_list.append(link_info)
             worksheet_3_fiveone.append(text_list)
+
+        
  
     wb.save(filename=save_file)
 
@@ -305,7 +251,7 @@ def sendMail(content):
 if __name__=="__main__":
     
     url = "http://muchong.com/bbs/kaoyan.php?&page={}"
-    urls = [url.format(str(i)) for i in range(1,20)]
+    urls = [url.format(str(i)) for i in range(1,30)]
     #for url in urls:
         #get_info_xmc(url)
     xmu_content = "小木虫 "+datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +" 更新调剂条目条数： " + str(xmu_count)
@@ -319,7 +265,7 @@ if __name__=="__main__":
     print(chain_kaoyan_content)
 
     url_fivekaoyan = "https://www.51kywang.com/51kaoyanwang/vip_doc/25221089_0_0_{}.html"
-    urls_fiveonekaoyan = [url_fivekaoyan.format(str(i)) for i in range(1,11)]
+    urls_fiveonekaoyan = [url_fivekaoyan.format(str(i)) for i in range(1,20)]
     for url in urls_fiveonekaoyan:
         get_info_fiveonekaoyan(url)
     fiveone_kaoyan_content = "51考研网 "+datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') +" 更新调剂条目条数： " + str(fiveone_kaoyan_count)
